@@ -1,9 +1,9 @@
-package com.kawaki.musicplayer.ui.theme.screens.home
+package com.kawaki.musicplayer.ui.screens.home
 
 import android.Manifest
+import android.net.Uri
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,10 +20,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.kawaki.musicplayer.ui.theme.components.checkStoragePermission
+import androidx.media3.common.util.UnstableApi
+import com.kawaki.musicplayer.ui.components.AudioCards
+import com.kawaki.musicplayer.ui.components.checkStoragePermission
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel()
@@ -39,7 +43,16 @@ fun HomeScreen(
     )
 
     val audioListState = viewModel.audioList.collectAsState(initial = listOf())
-    Log.d("AudioList", "getAudioList: ${audioListState.value}")
+    val mediaItemList = mutableListOf<Uri>()
+    audioListState.value.forEach { audio ->
+        mediaItemList.add(audio.uri)
+    }
+
+    val playerState = viewModel.playerState.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        if (audioListState.value.isNotEmpty()) viewModel.addMediaItems(uriList = mediaItemList)
+    }
 
     LaunchedEffect(key1 = true) {
         if (!checkStoragePermission(context)) {
@@ -56,11 +69,16 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier
+                .padding(innerPadding)
+                .padding(20.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            AudioCards(
+                audioList = audioListState.value,
+                viewModel = viewModel
+            )
         }
     }
 }

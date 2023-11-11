@@ -3,6 +3,7 @@ package com.kawaki.musicplayer.local
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
@@ -26,6 +27,7 @@ class ContentResolver @Inject constructor(
         MediaStore.Audio.AudioColumns.DURATION,
         MediaStore.Audio.AudioColumns.ARTIST,
         MediaStore.Audio.AudioColumns._ID,
+        MediaStore.Audio.AudioColumns.ALBUM_ID,
         MediaStore.Audio.AudioColumns.DISPLAY_NAME,
     )
 
@@ -55,6 +57,7 @@ class ContentResolver @Inject constructor(
         cursor?.use { mCursor ->
             val displayNameColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DISPLAY_NAME)
             val idColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns._ID)
+            val idAlbumColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.ALBUM_ID)
             val titleColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.TITLE)
             val durationColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
             val artistColumn = mCursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.ARTIST)
@@ -64,12 +67,17 @@ class ContentResolver @Inject constructor(
                 while (cursor?.moveToNext() == true) {
                     val displayName = getString(displayNameColumn)
                     val id = getLong(idColumn)
+                    val idAlbum = getLong(idAlbumColumn)
                     val title = getString(titleColumn)
                     val duration = getInt(durationColumn)
                     val artistName = getString(artistColumn)
                     val uri = ContentUris.withAppendedId(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         id
+                    )
+                    val albumArt = ContentUris.withAppendedId(
+                        Uri.parse((uri.toString().substringBefore("/audio") + "/audio/albumart")),
+                        idAlbum
                     )
 
                     audioList.add(
@@ -79,7 +87,8 @@ class ContentResolver @Inject constructor(
                             uri = uri,
                             title = title,
                             artist = artistName,
-                            duration = duration
+                            duration = duration,
+                            albumArt = albumArt
                         )
                     )
                 }

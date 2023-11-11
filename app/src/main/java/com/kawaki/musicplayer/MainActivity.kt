@@ -9,11 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.media3.common.util.UnstableApi
 import com.kawaki.musicplayer.ui.theme.MusicTheme
-import com.kawaki.musicplayer.ui.theme.screens.home.HomeScreen
+import com.kawaki.musicplayer.ui.screens.home.HomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
+@UnstableApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +37,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@UnstableApi
 @Composable
 fun MusicPlayerHome() {
     HomeScreen()
 }
 
+@UnstableApi
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
