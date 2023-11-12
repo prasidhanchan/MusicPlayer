@@ -37,18 +37,27 @@ import coil.compose.AsyncImagePainter
 import com.kawaki.musicplayer.R
 import com.kawaki.musicplayer.model.Audio
 import com.kawaki.musicplayer.ui.screens.home.HomeScreenViewModel
+enum class PainterState {
+    LOADING,
+    ERROR,
+    SUCCESS
+}
 
 @UnstableApi
 @Composable
 fun AudioCards(
     audioList: List<Audio>,
-    viewModel: HomeScreenViewModel
+    viewModel: HomeScreenViewModel,
+    selectedTrack: (Audio) -> Unit,
+    onClick: () -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(audioList) { audio ->
             AudioCardItem(
                 audio = audio,
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedTrack = { selectedTrack(it) },
+                onClick = onClick
             )
         }
     }
@@ -58,7 +67,9 @@ fun AudioCards(
 @Composable
 fun AudioCardItem(
     audio: Audio,
-    viewModel: HomeScreenViewModel
+    viewModel: HomeScreenViewModel,
+    selectedTrack: (Audio) -> Unit,
+    onClick: () -> Unit
 ) {
     var isAlbumArtExist by remember { mutableStateOf(PainterState.LOADING) }
 
@@ -67,7 +78,11 @@ fun AudioCardItem(
             .fillMaxWidth()
             .height(85.dp)
             .padding(vertical = 5.dp)
-            .clickable { viewModel.setMediaItem(MediaItem.fromUri(audio.uri)) },
+            .clickable {
+                viewModel.setMediaItem(MediaItem.fromUri(audio.uri))
+                selectedTrack(audio)
+                onClick()
+                       },
         shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
@@ -144,10 +159,4 @@ fun AudioCardItem(
             )
         }
     }
-}
-
-enum class PainterState {
-    LOADING,
-    ERROR,
-    SUCCESS
 }

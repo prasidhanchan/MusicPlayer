@@ -45,6 +45,11 @@ class HomeScreenViewModel @Inject constructor(
     fun addMediaItems(uriList: List<Uri>) = player.addMediaItem(uriList)
 
     fun playOrPause() = player.playOrPause()
+    fun seekToNext() = player.next()
+    fun seekToPrevious() = player.previous()
+    fun seekTo(newPosition: Long) = player.seekTo(newPosition)
+    fun shuffle(isShuffleOn: Boolean) = player.shuffle(isShuffleOn)
+    fun currentPlaybackPosition(position: (Long) -> Unit) = player.currentPosition { position(it) }
 
     override fun onCleared() {
         super.onCleared()
