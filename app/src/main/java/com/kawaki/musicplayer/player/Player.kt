@@ -1,6 +1,7 @@
 package com.kawaki.musicplayer.player
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -42,18 +43,25 @@ class Player @Inject constructor(
      * Function to set MediaItem
      * @param mediaItem Requires [MediaItem]
      */
-    fun setMediaItem(mediaItem: MediaItem) {
+    fun setMediaItem(
+        mediaItem: MediaItem,
+        playWhenReady: Boolean
+    ) {
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        if (playWhenReady) exoPlayer.playWhenReady = true
     }
 
     /**
      * Function to set list of MediaItems
-     * @param mediaItemList Requires a list of [MediaItem]
+     * @param uriList Requires a list of [Uri]
      */
-    fun setMediaItemList(mediaItemList: List<MediaItem>) {
-        exoPlayer.setMediaItems(mediaItemList)
+    fun setMediaItemList(uriList: List<Uri>) {
+        val mediaItemsList = mutableStateListOf<MediaItem>()
+        uriList.forEach { uri ->
+            mediaItemsList.add(MediaItem.fromUri(uri))
+        }
+        exoPlayer.setMediaItems(mediaItemsList)
         exoPlayer.prepare()
     }
 
@@ -84,14 +92,14 @@ class Player @Inject constructor(
     fun previous() { if (exoPlayer.hasPreviousMediaItem()) exoPlayer.seekToPrevious() }
 
     /** Function to change audio position */
-    fun seekTo(newPosition: Long) = exoPlayer.seekTo(exoPlayer.duration * newPosition)
+    fun seekTo(newPosition: Long) = exoPlayer.seekTo(newPosition)
 
     /**
      * Function to shuffle audio
      * @param isShuffleOn Shuffles the audio list if set to true
      */
     fun shuffle(isShuffleOn: Boolean) {
-        if (isShuffleOn) exoPlayer.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(Random.nextInt()))
+        if (isShuffleOn) exoPlayer.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(exoPlayer.mediaItemCount, 0L))
     }
 
     /** Function to get current live position

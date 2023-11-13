@@ -21,13 +21,13 @@ fun checkStoragePermission(context: Context): Boolean {
     }
 }
 
-/**
- * Function to convert ExoPlayer duration to 00:00 format
- * @param duration Actual duration from the player
- * @return Returns the formatted duration as a string
- */
-fun formatDuration(duration: Long): String {
-    val minutes = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
-    val seconds = (minutes) - minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
-    return String.format("%02d:%02d", minutes, seconds)
+/** Function to format Time for AudioPlayer ex: to 00:00 format
+ * @return Returns a string with the formatted timeStamp
+ * */
+fun Long.formatMinSec(): String {
+    return String.format(
+        "%02d:%02d",
+        TimeUnit.MILLISECONDS.toMinutes(this),
+        TimeUnit.MILLISECONDS.toSeconds(this) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(this))
+    )
 }

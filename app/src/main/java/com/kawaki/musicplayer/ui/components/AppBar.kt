@@ -1,20 +1,22 @@
 package com.kawaki.musicplayer.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,17 +24,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kawaki.musicplayer.R
+import kotlinx.coroutines.launch
 
+@ExperimentalMaterial3Api
 @Composable
-fun AppBar(isSheetOpen: MutableState<Boolean>) {
+fun AppBar(
+    modifier: Modifier = Modifier,
+    sheetState: BottomSheetScaffoldState
+) {
+    val scope = rememberCoroutineScope()
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(70.dp),
         color = Color.Transparent
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(70.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
@@ -41,7 +49,7 @@ fun AppBar(isSheetOpen: MutableState<Boolean>) {
                 modifier = Modifier.size(45.dp),
                 contentAlignment = Alignment.Center
             ) {
-                IconButton(onClick = { isSheetOpen.value = false }) {
+                IconButton(onClick = { scope.launch { sheetState.bottomSheetState.partialExpand() } }) {
                     Icon(
                         painter = painterResource(id = R.drawable.down_arrow),
                         contentDescription = "Back",
@@ -53,9 +61,9 @@ fun AppBar(isSheetOpen: MutableState<Boolean>) {
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
+@ExperimentalMaterial3Api
 @Preview
 @Composable
 fun AppBarPreview() {
-    AppBar(isSheetOpen = mutableStateOf(true))
+    AppBar(sheetState = rememberBottomSheetScaffoldState())
 }

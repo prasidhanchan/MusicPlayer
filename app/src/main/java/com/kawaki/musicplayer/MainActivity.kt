@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -15,6 +16,7 @@ import com.kawaki.musicplayer.ui.screens.home.HomeScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
+@ExperimentalMaterial3Api
 @UnstableApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,12 +39,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalMaterial3Api
 @UnstableApi
 @Composable
 fun MusicPlayerHome() {
     HomeScreen()
 }
 
+@ExperimentalMaterial3Api
 @UnstableApi
 @Preview(showBackground = true)
 @Composable

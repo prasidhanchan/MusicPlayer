@@ -30,6 +30,8 @@ class HomeScreenViewModel @Inject constructor(
     private val _playerState = player.playerState
     val playerState = _playerState
 
+    val mExoPlayer = exoPlayer
+
     init {
         getAudioList()
         exoPlayer.addListener(player)
@@ -40,8 +42,8 @@ class HomeScreenViewModel @Inject constructor(
             _audioList.value = audioRepository.getAudioList()
         }
     }
-    fun setMediaItem(mediaItem: MediaItem) = player.setMediaItem(mediaItem)
-    fun setMediaItems(mediaItemList: List<MediaItem>) = player.setMediaItemList(mediaItemList)
+    fun setMediaItem(mediaItem: MediaItem, playWhenReady: Boolean = true) = player.setMediaItem(mediaItem, playWhenReady)
+    fun setMediaItems(uriList: List<Uri>) = player.setMediaItemList(uriList)
     fun addMediaItems(uriList: List<Uri>) = player.addMediaItem(uriList)
 
     fun playOrPause() = player.playOrPause()
@@ -49,7 +51,6 @@ class HomeScreenViewModel @Inject constructor(
     fun seekToPrevious() = player.previous()
     fun seekTo(newPosition: Long) = player.seekTo(newPosition)
     fun shuffle(isShuffleOn: Boolean) = player.shuffle(isShuffleOn)
-    fun currentPlaybackPosition(position: (Long) -> Unit) = player.currentPosition { position(it) }
 
     override fun onCleared() {
         super.onCleared()

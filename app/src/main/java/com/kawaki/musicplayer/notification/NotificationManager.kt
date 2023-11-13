@@ -64,10 +64,11 @@ class NotificationManager @Inject constructor(
         )
             .setMediaDescriptionAdapter(
                 NotificationAdapter(
+                    context = context,
                     pendingIntent = mediaSession.sessionActivity
                 )
             )
-            .setSmallIconResourceId(androidx.core.R.drawable.notification_bg)
+            .setSmallIconResourceId(R.drawable.music_notification)
             .build()
             .apply {
                 setMediaSessionToken(mediaSession.sessionCompatToken)

@@ -15,10 +15,10 @@ class AudioService @Inject constructor(
 ): MediaSessionService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        notificationManager.startNotification(
-            mediaSession = mediaSession,
-            mediaSessionService = this
-        )
+            notificationManager.startNotification(
+                mediaSession = mediaSession,
+                mediaSessionService = this
+            )
         return super.onStartCommand(intent, flags, startId)
     }
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession

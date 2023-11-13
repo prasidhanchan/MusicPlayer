@@ -1,22 +1,30 @@
 package com.kawaki.musicplayer.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,16 +59,97 @@ enum class PainterState {
 fun AudioCards(
     audioList: List<Audio>,
     viewModel: HomeScreenViewModel,
-    selectedTrack: (Audio) -> Unit,
-    onClick: () -> Unit
+    selectedTrack: (Audio) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    val selectedAudio: MutableState<Audio?> = remember { mutableStateOf(null) }
+    val painterState = remember(selectedAudio.value) { mutableStateOf(PainterState.LOADING) }
+
+    LaunchedEffect(key1 = selectedAudio.value) {
+        if (selectedAudio.value != null) {
+            selectedTrack(selectedAudio.value!!)
+        }
+    }
+    LazyVerticalStaggeredGrid(
+        modifier = Modifier.fillMaxSize(),
+        columns = StaggeredGridCells.Fixed(1)
+    ) {
+        item(span = StaggeredGridItemSpan.FullLine) {
+            if (audioList.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    if (painterState.value == PainterState.ERROR) {
+                        Icon(
+                            modifier = Modifier
+                                .scale(0.60f)
+                                .height(400.dp)
+                                .padding(top = 80.dp),
+                            painter = painterResource(id = R.drawable.music),
+                            contentDescription = "Album Art"
+                        )
+                    } else {
+                        AsyncImage(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(400.dp),
+                            model = selectedAudio.value?.albumArt ?: audioList.first().albumArt,
+                            contentDescription = "Album Art",
+                            contentScale = ContentScale.FillBounds,
+                            onState = { mPainterState ->
+                                when(mPainterState) {
+                                    is AsyncImagePainter.State.Loading -> painterState.value = PainterState.LOADING
+                                    is AsyncImagePainter.State.Error -> painterState.value = PainterState.ERROR
+                                    is AsyncImagePainter.State.Success -> painterState.value = PainterState.SUCCESS
+                                    else -> painterState.value = PainterState.ERROR
+                                }
+                            }
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color(0xFF3C2334)
+                                    ),
+                                    startY = 0f
+                                )
+                            )
+                    )
+                }
+            }
+        }
+        item(span = StaggeredGridItemSpan.FullLine) {
+            Spacer(
+                modifier = Modifier
+                    .height(20.dp)
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF3C2334),
+                                Color.Transparent
+                            ),
+                            startY = 0f
+                        )
+                    )
+            )
+        }
         items(audioList) { audio ->
             AudioCardItem(
                 audio = audio,
                 viewModel = viewModel,
-                selectedTrack = { selectedTrack(it) },
-                onClick = onClick
+                selectedTrack = {
+                    selectedAudio.value = it
+//                    selectedTrack(it)
+                }
             )
         }
     }
@@ -68,21 +160,19 @@ fun AudioCards(
 fun AudioCardItem(
     audio: Audio,
     viewModel: HomeScreenViewModel,
-    selectedTrack: (Audio) -> Unit,
-    onClick: () -> Unit
+    selectedTrack: (Audio) -> Unit
 ) {
     var isAlbumArtExist by remember { mutableStateOf(PainterState.LOADING) }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(85.dp)
-            .padding(vertical = 5.dp)
+            .height(80.dp)
+            .padding(horizontal = 20.dp, vertical = 5.dp)
             .clickable {
                 viewModel.setMediaItem(MediaItem.fromUri(audio.uri))
                 selectedTrack(audio)
-                onClick()
-                       },
+            },
         shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
@@ -151,7 +241,7 @@ fun AudioCardItem(
             }
 
             Text(
-                text = formatDuration(audio.duration.toLong()),
+                text = audio.duration.toLong().formatMinSec(),
                 style = TextStyle(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal

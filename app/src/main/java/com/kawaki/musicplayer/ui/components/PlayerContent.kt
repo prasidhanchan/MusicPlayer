@@ -1,13 +1,13 @@
 package com.kawaki.musicplayer.ui.components
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,27 +17,26 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +53,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -62,141 +63,7 @@ import com.kawaki.musicplayer.model.Audio
 import com.kawaki.musicplayer.ui.screens.home.HomeScreenViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
-@UnstableApi
-@Composable
-fun PlayerSheet(
-    sheetState: SheetState,
-    audio: Audio,
-    shuffle: () -> Unit,
-    previous: () -> Unit,
-    next: () -> Unit,
-    playPause: () -> Unit,
-    favourite: () -> Unit,
-    duration: Long,
-    totalDuration: Long,
-    isPlaying: Boolean,
-    isFavourite: Boolean,
-    isSheetOpen: MutableState<Boolean>,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-        shape = MaterialTheme.shapes.small,
-        dragHandle = { }
-    ) {
-        PlayerContent(
-            audio = audio,
-            shuffle = shuffle,
-            previous = previous,
-            next = next,
-            playPause = playPause,
-            favourite = favourite,
-            duration = duration,
-            totalDuration = totalDuration,
-            isPlaying = isPlaying,
-            isFavourite = isFavourite,
-            isSheetOpen = isSheetOpen
-        )
-    }
-}
-
-@Composable
-fun PlayerBottomBar(
-    audio: Audio,
-    playPause: () -> Unit,
-    next: () -> Unit,
-    isSheetOpen: MutableState<Boolean>,
-    isPlaying: Boolean
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .padding(bottom = 10.dp)
-                .clickable { isSheetOpen.value = true },
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                    model = audio.albumArt,
-                    contentDescription = audio.title,
-                    contentScale = ContentScale.FillBounds
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(horizontal = 30.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(0.50f),
-                        text = audio.title,
-                        style = TextStyle(
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        modifier = Modifier.fillMaxWidth(0.50f),
-                        text = audio.artist,
-                        style = TextStyle(
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Surface(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .clickable { playPause() },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(20.dp),
-                            painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
-                            contentDescription = "Play/Pause"
-                        )
-                    }
-                }
-
-                IconButton(onClick = next) {
-                    Icon(
-                        modifier = Modifier.size(20.dp),
-                        painter = painterResource(id = R.drawable.play_next),
-                        contentDescription = "Next"
-                    )
-                }
-            }
-        }
-    }
-}
-
+@ExperimentalMaterial3Api
 @UnstableApi
 @Composable
 fun PlayerContent(
@@ -207,45 +74,71 @@ fun PlayerContent(
     playPause: () -> Unit,
     favourite: () -> Unit,
     duration: Long,
+    onSeekChange: (Float) -> Unit,
     totalDuration: Long,
     isPlaying: Boolean,
     isFavourite: Boolean,
-    isSheetOpen: MutableState<Boolean>
+    sheetScaffoldState: BottomSheetScaffoldState,
+    viewModel: HomeScreenViewModel
 ) {
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.TopCenter
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            PlayerTopContent(
+                audio = audio,
+                isPlaying = isPlaying,
+                sheetScaffoldState = sheetScaffoldState
+            )
 
-        PlayerTopContent(
-            audio = audio,
-            isSheetOpen = isSheetOpen
-        )
-
-        PlayerCenterControls(
-            duration = duration,
-            totalDuration = totalDuration,
-            onChange = { }
-        )
-        PlayerBottomControls(
-            shuffle = shuffle,
-            previous = previous,
-            next = next,
-            playPause = playPause,
-            favourite = favourite,
-            isPlaying = isPlaying,
-            isFavourite = isFavourite
-        )
+            PlayerCenterControls(
+                duration = duration,
+                totalDuration = totalDuration,
+                onChange = onSeekChange
+            )
+            PlayerBottomControls(
+                shuffle = shuffle,
+                previous = previous,
+                next = next,
+                playPause = playPause,
+                favourite = favourite,
+                duration = duration,
+                totalDuration = totalDuration,
+                isPlaying = isPlaying,
+                isFavourite = isFavourite,
+                currentTrack = audio,
+                viewModel = viewModel
+            )
+        }
+        AnimatedVisibility(
+            visible = sheetScaffoldState.bottomSheetState.currentValue == SheetValue.PartiallyExpanded,
+            enter = slideInVertically(animationSpec = tween(500), initialOffsetY = { -it }),
+            exit = slideOutVertically(animationSpec = tween(500), targetOffsetY = { -it })
+        ) {
+            PlayerBottomBar(
+                audio = audio,
+                playPause = playPause,
+                next = next,
+                sheetScaffoldState = sheetScaffoldState,
+                isPlaying = isPlaying,
+            )
+        }
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun PlayerTopContent(
     audio: Audio,
-    isSheetOpen: MutableState<Boolean>
+    sheetScaffoldState: BottomSheetScaffoldState,
+    isPlaying: Boolean
 ) {
-    val isLoaded = remember { mutableStateOf(PainterState.LOADING) }
+    val isLoaded = remember(isPlaying) { mutableStateOf(PainterState.LOADING) }
 
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -261,7 +154,7 @@ fun PlayerTopContent(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.music),
-                    contentDescription = "",
+                    contentDescription = "Music",
                     modifier = Modifier.scale(0.50f)
                 )
             }
@@ -284,7 +177,10 @@ fun PlayerTopContent(
                 }
             )
         }
-        AppBar(isSheetOpen = isSheetOpen)
+        AppBar(
+            modifier = Modifier.padding(top = 20.dp),
+            sheetState = sheetScaffoldState
+        )
     }
 
     Box(
@@ -326,7 +222,7 @@ fun PlayerCenterControls(
     totalDuration: Long,
     onChange: (Float) -> Unit
 ) {
-    val currentPosition = remember { mutableFloatStateOf(duration.toFloat()) }
+    val currentPosition = remember(duration) { mutableLongStateOf(duration) }
 
     Column(
         modifier = Modifier
@@ -344,7 +240,7 @@ fun PlayerCenterControls(
         ) {
             Slider(
                 value = 100f,
-                onValueChange = { },
+                onValueChange = {  },
                 valueRange = 0f..100f,
                 enabled = false,
                 colors = SliderDefaults.colors(
@@ -353,9 +249,9 @@ fun PlayerCenterControls(
                 )
             )
             Slider(
-                value = currentPosition.floatValue,
+                value = currentPosition.longValue.toFloat(),
                 onValueChange = {
-                    currentPosition.value = it
+                    currentPosition.longValue = it.toLong()
                     onChange(it)
                 },
                 valueRange = 0f..totalDuration.toFloat(),
@@ -364,7 +260,7 @@ fun PlayerCenterControls(
                     inactiveTrackColor = Color.Transparent,
                     thumbColor = Color.Transparent
                 ),
-                thumb = { }
+                thumb = {  }
             )
         }
         Row(
@@ -375,7 +271,7 @@ fun PlayerCenterControls(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = formatDuration(duration),
+                text = duration.formatMinSec(),
                 style = TextStyle(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal
@@ -384,7 +280,7 @@ fun PlayerCenterControls(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = formatDuration(totalDuration),
+                text = totalDuration.formatMinSec(),
                 style = TextStyle(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal
@@ -396,6 +292,7 @@ fun PlayerCenterControls(
     }
 }
 
+@UnstableApi
 @Composable
 fun PlayerBottomControls(
     shuffle: () -> Unit,
@@ -403,8 +300,12 @@ fun PlayerBottomControls(
     next: () -> Unit,
     playPause: () -> Unit,
     favourite: () -> Unit,
+    duration: Long,
+    totalDuration: Long,
     isPlaying: Boolean,
-    isFavourite: Boolean
+    isFavourite: Boolean,
+    currentTrack: Audio,
+    viewModel: HomeScreenViewModel
 ) {
     Row(
         modifier = Modifier
@@ -429,7 +330,13 @@ fun PlayerBottomControls(
             modifier = Modifier
                 .size(70.dp)
                 .clip(CircleShape)
-                .clickable { playPause() },
+                .clickable {
+                    if (duration == totalDuration) {
+                        viewModel.setMediaItem(mediaItem = MediaItem.fromUri(currentTrack.uri))
+                    } else {
+                        playPause()
+                    }
+                },
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceVariant
         ) {
@@ -458,7 +365,124 @@ fun PlayerBottomControls(
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
+@ExperimentalMaterial3Api
+@Composable
+fun PlayerBottomBar(
+    audio: Audio,
+    playPause: () -> Unit,
+    next: () -> Unit,
+    sheetScaffoldState: BottomSheetScaffoldState,
+    isPlaying: Boolean
+) {
+    val scope = rememberCoroutineScope()
+    val painterState = remember(isPlaying) { mutableStateOf(PainterState.LOADING) }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .padding(bottom = 20.dp)
+            .clickable { scope.launch { sheetScaffoldState.bottomSheetState.expand() } },
+        color = MaterialTheme.colorScheme.background,
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (painterState.value == PainterState.ERROR) {
+                Surface(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.music),
+                        contentDescription = "Album Art",
+                        modifier = Modifier.scale(0.5f)
+                    )
+                }
+            } else {
+                AsyncImage(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    model = audio.albumArt,
+                    contentDescription = audio.title,
+                    contentScale = ContentScale.FillBounds,
+                    onState = { mPainterState ->
+                        when(mPainterState) {
+                            is AsyncImagePainter.State.Loading -> painterState.value = PainterState.LOADING
+                            is AsyncImagePainter.State.Error -> painterState.value = PainterState.ERROR
+                            is AsyncImagePainter.State.Success -> painterState.value = PainterState.SUCCESS
+                            else -> painterState.value = PainterState.ERROR
+                        }
+                    }
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(horizontal = 30.dp, vertical = 22.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(0.50f),
+                    text = audio.title,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    modifier = Modifier.fillMaxWidth(0.50f),
+                    text = audio.artist,
+                    style = TextStyle(
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Normal
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Surface(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .clickable { playPause() },
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(id = if (isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = "Play/Pause"
+                    )
+                }
+            }
+
+            IconButton(onClick = next) {
+                Icon(
+                    modifier = Modifier.size(20.dp),
+                    painter = painterResource(id = R.drawable.play_next),
+                    contentDescription = "Next"
+                )
+            }
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
 @UnstableApi
 @Preview(showBackground = true)
 @Composable
@@ -481,9 +505,11 @@ fun PlayerPreview() {
         playPause = { /*TODO*/ },
         favourite = { /*TODO*/ },
         duration = 90L,
+        onSeekChange = {  },
         totalDuration = 100L,
         isPlaying = false,
         isFavourite = false,
-        isSheetOpen = mutableStateOf(true)
+        sheetScaffoldState = rememberBottomSheetScaffoldState(),
+        viewModel = hiltViewModel()
     )
 }

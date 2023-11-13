@@ -2,6 +2,7 @@
 activity-compose = "1.8.0"
 androidx-junit = "1.1.5"
 coil-compose = "2.4.0"
+glide-compose = "1.0.0-beta01"
 core-ktx = "1.12.0"
 espresso-core = "3.5.1"
 hilt-version = "2.47"
@@ -17,6 +18,7 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-session = { module = "androidx.media3:media3-session", version.ref = "media3-datasource-okhttp" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3-datasource-okhttp" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
+glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "glide-compose" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-compiler-version" }
 androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt-compiler-version" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-version" }
