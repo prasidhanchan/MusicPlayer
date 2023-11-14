@@ -1,17 +1,16 @@
 package com.kawaki.musicplayer.player
 
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-import kotlin.random.Random
 
 @UnstableApi
 class Player @Inject constructor(
@@ -20,6 +19,8 @@ class Player @Inject constructor(
 
     private val _playerState = MutableStateFlow(PlayerState.IDLE)
     val playerState = _playerState.asStateFlow()
+
+    private val job: Job? = null
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
@@ -56,40 +57,19 @@ class Player @Inject constructor(
      * Function to set list of MediaItems
      * @param uriList Requires a list of [Uri]
      */
-    fun setMediaItemList(uriList: List<Uri>) {
-        val mediaItemsList = mutableStateListOf<MediaItem>()
-        uriList.forEach { uri ->
-            mediaItemsList.add(MediaItem.fromUri(uri))
-        }
-        exoPlayer.setMediaItems(mediaItemsList)
+    fun setMediaItemList(mediaItemList: List<MediaItem>) {
+        exoPlayer.setMediaItems(mediaItemList)
         exoPlayer.prepare()
-    }
-
-    fun addMediaItem(uriList: List<Uri>) {
-        val mediaItemsList = mutableStateListOf<MediaItem>()
-        uriList.forEach { uri ->
-            mediaItemsList.add(MediaItem.fromUri(uri))
-        }
-        exoPlayer.addMediaItems(mediaItemsList)
-
-        if (mediaItemsList.isNotEmpty())  {
-            exoPlayer.setMediaItem(mediaItemsList.first())
-            mediaItemsList.forEach { mediaItem ->
-                if (exoPlayer.duration == exoPlayer.currentPosition && exoPlayer.hasNextMediaItem()) {
-                    exoPlayer.setMediaItem(mediaItem)
-                }
-            }
-        }
     }
 
     /** Function to play/pause audio */
     fun playOrPause() = if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
 
     /** Function to play next track */
-    fun next() { if (exoPlayer.hasNextMediaItem()) exoPlayer.seekToNext() }
+    fun next() = exoPlayer.seekToNextMediaItem()
 
     /** Function to play previous track */
-    fun previous() { if (exoPlayer.hasPreviousMediaItem()) exoPlayer.seekToPrevious() }
+    fun previous() = exoPlayer.seekToPreviousMediaItem()
 
     /** Function to change audio position */
     fun seekTo(newPosition: Long) = exoPlayer.seekTo(newPosition)
@@ -105,6 +85,12 @@ class Player @Inject constructor(
     /** Function to get current live position
      * @return Returns the current position of the audio
      * */
-    fun currentPosition(position: (Long) -> Unit) = position(exoPlayer.currentPosition)
-
+    suspend fun currentPosition(position: (Long) -> Unit)  {
+        job.run {
+            while (true) {
+                position(exoPlayer.currentPosition)
+                delay(1000)
+            }
+        }
+    }
 }

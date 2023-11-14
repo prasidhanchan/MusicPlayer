@@ -3,10 +3,7 @@ package com.kawaki.musicplayer.local
 import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
-import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
-import android.widget.Toast
 import com.kawaki.musicplayer.model.Audio
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -76,7 +73,7 @@ class ContentResolver @Inject constructor(
                         id
                     )
                     val albumArt = ContentUris.withAppendedId(
-                        Uri.parse((uri.toString().substringBefore("/audio") + "/audio/albumart")),
+                        MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                         idAlbum
                     )
 

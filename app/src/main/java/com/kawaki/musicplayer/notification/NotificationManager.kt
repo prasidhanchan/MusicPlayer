@@ -12,11 +12,12 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.ui.PlayerNotificationManager
 import com.kawaki.musicplayer.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @UnstableApi
 class NotificationManager @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val exoPlayer: ExoPlayer
 ) {
     private val notificationManager = NotificationManagerCompat.from(context)
@@ -72,8 +73,6 @@ class NotificationManager @Inject constructor(
             .build()
             .apply {
                 setMediaSessionToken(mediaSession.sessionCompatToken)
-                setUseFastForwardActionInCompactView(true)
-                setUseRewindActionInCompactView(true)
                 setUseNextActionInCompactView(true)
                 setUsePreviousActionInCompactView(true)
                 setPriority(NotificationCompat.PRIORITY_LOW)

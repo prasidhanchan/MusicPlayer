@@ -1,10 +1,8 @@
 package com.kawaki.musicplayer.ui.screens.home
 
 import android.Manifest
-import android.net.Uri
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +17,7 @@ import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +33,6 @@ import com.kawaki.musicplayer.ui.components.AudioCards
 import com.kawaki.musicplayer.ui.components.LoadingComp
 import com.kawaki.musicplayer.ui.components.PlayerContent
 import com.kawaki.musicplayer.ui.components.checkStoragePermission
-import kotlinx.coroutines.delay
 
 @ExperimentalMaterial3Api
 @UnstableApi
@@ -47,26 +45,16 @@ fun HomeScreen(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (!isGranted) {
-                Toast.makeText(context, "Enable notification in settings", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Enable storage permission in settings", Toast.LENGTH_LONG)
+                    .show()
             }
         }
     )
 
     val audioListState = viewModel.audioList.collectAsState(initial = listOf())
-    val mediaItemList = mutableListOf<Uri>()
+//    val mediaItemList = mutableListOf<Uri>()
 
     val playerState = viewModel.playerState.collectAsState()
-
-    LaunchedEffect(key1 = true) {
-        if (audioListState.value.isNotEmpty()) {
-
-            audioListState.value.forEach { audio ->
-                mediaItemList.add(audio.uri)
-            }
-            Log.d("RECOMPP", "setMediaItemList: ${audioListState.value.size}")
-            viewModel.setMediaItems(uriList = mediaItemList)
-        }
-    }
 
     LaunchedEffect(key1 = true) {
         if (!checkStoragePermission(context)) {
@@ -81,21 +69,37 @@ fun HomeScreen(
     val sheetState = rememberBottomSheetScaffoldState()
     val currentPosition = remember { mutableLongStateOf(0L) }
     LaunchedEffect(key1 = viewModel.mExoPlayer) {
-        while (true) {
-            currentPosition.longValue = viewModel.mExoPlayer.currentPosition
-            delay(1000)
-        }
+        viewModel.currentTime { currentPosition.longValue = it }
     }
 
+    /** On every first Launch */
     if (audioListState.value.isNotEmpty()) {
-        val selectedTrack = remember(viewModel.mExoPlayer) { mutableStateOf(audioListState.value.first()) }
+        val selectedIndex = remember(viewModel.mExoPlayer) { mutableIntStateOf(0) }
+        val selectedTrack =
+            remember(viewModel.mExoPlayer) { mutableStateOf(audioListState.value.first()) }
         LaunchedEffect(key1 = true) {
-                Log.d("RECOMPP", "setMediaItemList: Executed")
-                viewModel.setMediaItem(
-                    mediaItem = MediaItem.fromUri(selectedTrack.value.uri),
-                    playWhenReady = false
-                )
+            viewModel.setMediaItem(
+                mediaItem = MediaItem.fromUri(selectedTrack.value.uri),
+                playWhenReady = false
+            )
         }
+
+        val mediaItemList = remember(viewModel.mExoPlayer) { mutableListOf<MediaItem>() }
+        LaunchedEffect(key1 = viewModel.mExoPlayer) {
+            audioListState.value.forEach { audio ->
+                mediaItemList.add(MediaItem.fromUri(audio.uri))
+            }
+        }
+        LaunchedEffect(key1 = true) {
+            if (audioListState.value.isNotEmpty()) {
+                viewModel.setMediaItemList(mediaItemList)
+            }
+        }
+        LaunchedEffect(key1 = currentPosition.longValue) {
+            selectedTrack.value =
+                audioListState.value[if (viewModel.mExoPlayer.currentMediaItemIndex != 0) viewModel.mExoPlayer.currentMediaItemIndex else selectedIndex.intValue]
+        }
+
 
         BottomSheetScaffold(
             modifier = Modifier.fillMaxSize(),
@@ -105,11 +109,12 @@ fun HomeScreen(
                     audio = selectedTrack.value,
                     shuffle = { viewModel.shuffle(true) },
                     previous = { viewModel.seekToPrevious() },
-                    next = { viewModel.mExoPlayer.seekToNext() },
+                    next = { viewModel.seekToNext() },
                     playPause = { viewModel.playOrPause() },
-                    favourite = {  },
+                    favourite = { },
                     duration = currentPosition.longValue,
                     onSeekChange = { viewModel.seekTo(it.toLong()) },
+                    onIndexChange = { selectedIndex.intValue = it },
                     totalDuration = selectedTrack.value.duration.toLong(),
                     isPlaying = playerState.value == PlayerState.IsPLAYING,
                     isFavourite = false,
@@ -119,7 +124,7 @@ fun HomeScreen(
             },
             scaffoldState = sheetState,
             sheetPeekHeight = 100.dp,
-            sheetDragHandle = {  }
+            sheetDragHandle = { }
         ) { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding),
@@ -128,8 +133,11 @@ fun HomeScreen(
             ) {
                 AudioCards(
                     audioList = audioListState.value,
+                    audio = selectedTrack.value,
                     viewModel = viewModel
-                ) { selectedTrack.value = it }
+                ) {
+                    selectedIndex.intValue = it
+                }
             }
         }
     } else {

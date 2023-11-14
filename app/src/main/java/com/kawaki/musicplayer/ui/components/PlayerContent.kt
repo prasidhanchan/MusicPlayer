@@ -1,11 +1,8 @@
 package com.kawaki.musicplayer.ui.components
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
@@ -23,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffoldState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,8 +32,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,6 +71,7 @@ fun PlayerContent(
     favourite: () -> Unit,
     duration: Long,
     onSeekChange: (Float) -> Unit,
+    onIndexChange: (Int) -> Unit,
     totalDuration: Long,
     isPlaying: Boolean,
     isFavourite: Boolean,
@@ -103,8 +100,14 @@ fun PlayerContent(
             )
             PlayerBottomControls(
                 shuffle = shuffle,
-                previous = previous,
-                next = next,
+                previous = {
+                    previous()
+                    onIndexChange(viewModel.mExoPlayer.currentMediaItemIndex)
+                },
+                next = {
+                    next()
+                    onIndexChange(viewModel.mExoPlayer.currentMediaItemIndex)
+                },
                 playPause = playPause,
                 favourite = favourite,
                 duration = duration,
@@ -125,7 +128,7 @@ fun PlayerContent(
                 playPause = playPause,
                 next = next,
                 sheetScaffoldState = sheetScaffoldState,
-                isPlaying = isPlaying,
+                isPlaying = isPlaying
             )
         }
     }
@@ -138,45 +141,26 @@ fun PlayerTopContent(
     sheetScaffoldState: BottomSheetScaffoldState,
     isPlaying: Boolean
 ) {
-    val isLoaded = remember(isPlaying) { mutableStateOf(PainterState.LOADING) }
+
+    val mAudio = remember(audio) { mutableStateOf(audio) }
+    val painterState = remember { mutableStateOf(PainterState.LOADING) }
 
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
-        if (isLoaded.value == PainterState.ERROR) {
-            Surface(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.5f),
-                color = MaterialTheme.colorScheme.onSurface
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.music),
-                    contentDescription = "Music",
-                    modifier = Modifier.scale(0.50f)
-                )
-            }
-        } else {
-            AsyncImage(
-                model = audio.albumArt,
-                contentDescription = "Album Art",
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.5f),
-                contentScale = ContentScale.FillBounds,
-                onState = { painterState ->
-                    when (painterState) {
-                        is AsyncImagePainter.State.Loading -> isLoaded.value = PainterState.LOADING
-                        is AsyncImagePainter.State.Error -> isLoaded.value = PainterState.ERROR
-                        is AsyncImagePainter.State.Success -> isLoaded.value = PainterState.SUCCESS
-                        else -> isLoaded.value = PainterState.ERROR
-                    }
-                }
-            )
-        }
+        if (painterState.value == PainterState.LOADING) CircularProgressIndicator()
+        AsyncImage(
+            model = mAudio.value.albumArt,
+            contentDescription = "Album Art",
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .fillMaxWidth()
+                .fillMaxHeight(0.5f),
+            contentScale = ContentScale.FillBounds,
+            onError = { painterState.value = PainterState.ERROR },
+            onLoading = { painterState.value = PainterState.LOADING }
+        )
         AppBar(
             modifier = Modifier.padding(top = 20.dp),
             sheetState = sheetScaffoldState
@@ -240,7 +224,7 @@ fun PlayerCenterControls(
         ) {
             Slider(
                 value = 100f,
-                onValueChange = {  },
+                onValueChange = { },
                 valueRange = 0f..100f,
                 enabled = false,
                 colors = SliderDefaults.colors(
@@ -260,7 +244,7 @@ fun PlayerCenterControls(
                     inactiveTrackColor = Color.Transparent,
                     thumbColor = Color.Transparent
                 ),
-                thumb = {  }
+                thumb = { }
             )
         }
         Row(
@@ -375,6 +359,7 @@ fun PlayerBottomBar(
     isPlaying: Boolean
 ) {
     val scope = rememberCoroutineScope()
+    val mAudio = remember(audio) { mutableStateOf(audio) }
     val painterState = remember(isPlaying) { mutableStateOf(PainterState.LOADING) }
 
     Surface(
@@ -409,14 +394,20 @@ fun PlayerBottomBar(
                     modifier = Modifier
                         .size(50.dp)
                         .clip(RoundedCornerShape(10.dp)),
-                    model = audio.albumArt,
+                    model = mAudio.value.albumArt,
                     contentDescription = audio.title,
                     contentScale = ContentScale.FillBounds,
                     onState = { mPainterState ->
-                        when(mPainterState) {
-                            is AsyncImagePainter.State.Loading -> painterState.value = PainterState.LOADING
-                            is AsyncImagePainter.State.Error -> painterState.value = PainterState.ERROR
-                            is AsyncImagePainter.State.Success -> painterState.value = PainterState.SUCCESS
+                        when (mPainterState) {
+                            is AsyncImagePainter.State.Loading -> painterState.value =
+                                PainterState.LOADING
+
+                            is AsyncImagePainter.State.Error -> painterState.value =
+                                PainterState.ERROR
+
+                            is AsyncImagePainter.State.Success -> painterState.value =
+                                PainterState.SUCCESS
+
                             else -> painterState.value = PainterState.ERROR
                         }
                     }
@@ -505,7 +496,8 @@ fun PlayerPreview() {
         playPause = { /*TODO*/ },
         favourite = { /*TODO*/ },
         duration = 90L,
-        onSeekChange = {  },
+        onSeekChange = { },
+        onIndexChange = { },
         totalDuration = 100L,
         isPlaying = false,
         isFavourite = false,

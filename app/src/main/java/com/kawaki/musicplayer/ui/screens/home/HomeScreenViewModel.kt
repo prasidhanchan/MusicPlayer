@@ -43,14 +43,19 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
     fun setMediaItem(mediaItem: MediaItem, playWhenReady: Boolean = true) = player.setMediaItem(mediaItem, playWhenReady)
-    fun setMediaItems(uriList: List<Uri>) = player.setMediaItemList(uriList)
-    fun addMediaItems(uriList: List<Uri>) = player.addMediaItem(uriList)
+    fun setMediaItemList(mediaItemList: List<MediaItem>) = player.setMediaItemList(mediaItemList)
 
     fun playOrPause() = player.playOrPause()
     fun seekToNext() = player.next()
     fun seekToPrevious() = player.previous()
     fun seekTo(newPosition: Long) = player.seekTo(newPosition)
     fun shuffle(isShuffleOn: Boolean) = player.shuffle(isShuffleOn)
+
+    fun currentTime(currentPosition: (Long) -> Unit) {
+        viewModelScope.launch {
+            player.currentPosition { position -> currentPosition(position) }
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

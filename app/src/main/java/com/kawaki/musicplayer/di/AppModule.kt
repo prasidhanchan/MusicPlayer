@@ -6,7 +6,9 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.session.MediaSession
 import com.kawaki.musicplayer.local.ContentResolver
+import com.kawaki.musicplayer.notification.NotificationManager
 import com.kawaki.musicplayer.player.Player
 import dagger.Module
 import dagger.Provides
@@ -42,4 +44,13 @@ object AppModule {
     @Provides
     @UnstableApi
     fun providePlayerListener(exoPlayer: ExoPlayer) = Player(exoPlayer)
+
+    @Singleton
+    @Provides
+    fun provideMediaSession(@ApplicationContext context: Context, player: ExoPlayer) = MediaSession.Builder(context, player).build()
+
+    @Singleton
+    @Provides
+    @UnstableApi
+    fun provideNotificationManager(@ApplicationContext context: Context, exoPlayer: ExoPlayer) = NotificationManager(context, exoPlayer)
 }

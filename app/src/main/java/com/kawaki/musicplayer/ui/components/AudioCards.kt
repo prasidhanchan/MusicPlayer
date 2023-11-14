@@ -3,6 +3,7 @@ package com.kawaki.musicplayer.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +17,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,8 +46,10 @@ import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.kawaki.musicplayer.R
+import com.kawaki.musicplayer.Utils
 import com.kawaki.musicplayer.model.Audio
 import com.kawaki.musicplayer.ui.screens.home.HomeScreenViewModel
+
 enum class PainterState {
     LOADING,
     ERROR,
@@ -58,17 +60,15 @@ enum class PainterState {
 @Composable
 fun AudioCards(
     audioList: List<Audio>,
+    audio: Audio,
     viewModel: HomeScreenViewModel,
-    selectedTrack: (Audio) -> Unit
+    selectedIndex: (Int) -> Unit
 ) {
-    val selectedAudio: MutableState<Audio?> = remember { mutableStateOf(null) }
-    val painterState = remember(selectedAudio.value) { mutableStateOf(PainterState.LOADING) }
+    val mAudio = remember(audio) { mutableStateOf(audio) }
+    val painterState = remember(audio) { mutableStateOf(PainterState.LOADING) }
 
-    LaunchedEffect(key1 = selectedAudio.value) {
-        if (selectedAudio.value != null) {
-            selectedTrack(selectedAudio.value!!)
-        }
-    }
+    val dynamicColor = if (isSystemInDarkTheme()) Utils.offBlack else Utils.offWhite
+
     LazyVerticalStaggeredGrid(
         modifier = Modifier.fillMaxSize(),
         columns = StaggeredGridCells.Fixed(1)
@@ -95,14 +95,20 @@ fun AudioCards(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(400.dp),
-                            model = selectedAudio.value?.albumArt ?: audioList.first().albumArt,
+                            model = mAudio.value.albumArt,
                             contentDescription = "Album Art",
                             contentScale = ContentScale.FillBounds,
                             onState = { mPainterState ->
-                                when(mPainterState) {
-                                    is AsyncImagePainter.State.Loading -> painterState.value = PainterState.LOADING
-                                    is AsyncImagePainter.State.Error -> painterState.value = PainterState.ERROR
-                                    is AsyncImagePainter.State.Success -> painterState.value = PainterState.SUCCESS
+                                when (mPainterState) {
+                                    is AsyncImagePainter.State.Loading -> painterState.value =
+                                        PainterState.LOADING
+
+                                    is AsyncImagePainter.State.Error -> painterState.value =
+                                        PainterState.ERROR
+
+                                    is AsyncImagePainter.State.Success -> painterState.value =
+                                        PainterState.SUCCESS
+
                                     else -> painterState.value = PainterState.ERROR
                                 }
                             }
@@ -116,7 +122,7 @@ fun AudioCards(
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        Color(0xFF3C2334)
+                                        dynamicColor
                                     ),
                                     startY = 0f
                                 )
@@ -134,7 +140,7 @@ fun AudioCards(
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFF3C2334),
+                                dynamicColor,
                                 Color.Transparent
                             ),
                             startY = 0f
@@ -142,13 +148,12 @@ fun AudioCards(
                     )
             )
         }
-        items(audioList) { audio ->
+        itemsIndexed(audioList) { index, audio ->
             AudioCardItem(
                 audio = audio,
                 viewModel = viewModel,
                 selectedTrack = {
-                    selectedAudio.value = it
-//                    selectedTrack(it)
+                    selectedIndex(index)
                 }
             )
         }
