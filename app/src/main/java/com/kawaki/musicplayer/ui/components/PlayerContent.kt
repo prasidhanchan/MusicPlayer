@@ -50,7 +50,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -89,7 +88,6 @@ fun PlayerContent(
         ) {
             PlayerTopContent(
                 audio = audio,
-                isPlaying = isPlaying,
                 sheetScaffoldState = sheetScaffoldState
             )
 
@@ -114,7 +112,6 @@ fun PlayerContent(
                 totalDuration = totalDuration,
                 isPlaying = isPlaying,
                 isFavourite = isFavourite,
-                currentTrack = audio,
                 viewModel = viewModel
             )
         }
@@ -138,8 +135,7 @@ fun PlayerContent(
 @Composable
 fun PlayerTopContent(
     audio: Audio,
-    sheetScaffoldState: BottomSheetScaffoldState,
-    isPlaying: Boolean
+    sheetScaffoldState: BottomSheetScaffoldState
 ) {
 
     val mAudio = remember(audio) { mutableStateOf(audio) }
@@ -288,7 +284,6 @@ fun PlayerBottomControls(
     totalDuration: Long,
     isPlaying: Boolean,
     isFavourite: Boolean,
-    currentTrack: Audio,
     viewModel: HomeScreenViewModel
 ) {
     Row(
@@ -316,7 +311,7 @@ fun PlayerBottomControls(
                 .clip(CircleShape)
                 .clickable {
                     if (duration == totalDuration) {
-                        viewModel.setMediaItem(mediaItem = MediaItem.fromUri(currentTrack.uri))
+                        viewModel.seekTo(0L)
                     } else {
                         playPause()
                     }

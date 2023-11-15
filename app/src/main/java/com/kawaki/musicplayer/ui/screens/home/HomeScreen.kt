@@ -52,7 +52,6 @@ fun HomeScreen(
     )
 
     val audioListState = viewModel.audioList.collectAsState(initial = listOf())
-//    val mediaItemList = mutableListOf<Uri>()
 
     val playerState = viewModel.playerState.collectAsState()
 
@@ -72,24 +71,18 @@ fun HomeScreen(
         viewModel.currentTime { currentPosition.longValue = it }
     }
 
-    /** On every first Launch */
-    if (audioListState.value.isNotEmpty()) {
-        val selectedIndex = remember(viewModel.mExoPlayer) { mutableIntStateOf(0) }
-        val selectedTrack =
-            remember(viewModel.mExoPlayer) { mutableStateOf(audioListState.value.first()) }
-        LaunchedEffect(key1 = true) {
-            viewModel.setMediaItem(
-                mediaItem = MediaItem.fromUri(selectedTrack.value.uri),
-                playWhenReady = false
-            )
+    val selectedIndex = remember(viewModel.mExoPlayer) { mutableIntStateOf(0) }
+    val mediaItemList = remember(viewModel.mExoPlayer) { mutableListOf<MediaItem>() }
+    LaunchedEffect(key1 = viewModel.mExoPlayer) {
+        audioListState.value.forEach { audio ->
+            mediaItemList.add(MediaItem.fromUri(audio.uri))
         }
+    }
 
-        val mediaItemList = remember(viewModel.mExoPlayer) { mutableListOf<MediaItem>() }
-        LaunchedEffect(key1 = viewModel.mExoPlayer) {
-            audioListState.value.forEach { audio ->
-                mediaItemList.add(MediaItem.fromUri(audio.uri))
-            }
-        }
+    /** On every first Launch */
+    if (audioListState.value.isNotEmpty() && mediaItemList.isNotEmpty()) {
+        val selectedTrack = remember(viewModel.mExoPlayer) { mutableStateOf(audioListState.value.first()) }
+
         LaunchedEffect(key1 = true) {
             if (audioListState.value.isNotEmpty()) {
                 viewModel.setMediaItemList(mediaItemList)
@@ -99,7 +92,6 @@ fun HomeScreen(
             selectedTrack.value =
                 audioListState.value[if (viewModel.mExoPlayer.currentMediaItemIndex != 0) viewModel.mExoPlayer.currentMediaItemIndex else selectedIndex.intValue]
         }
-
 
         BottomSheetScaffold(
             modifier = Modifier.fillMaxSize(),
@@ -134,7 +126,8 @@ fun HomeScreen(
                 AudioCards(
                     audioList = audioListState.value,
                     audio = selectedTrack.value,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    mediaItemList = mediaItemList
                 ) {
                     selectedIndex.intValue = it
                 }

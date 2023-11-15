@@ -25,7 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,6 +61,7 @@ fun AudioCards(
     audioList: List<Audio>,
     audio: Audio,
     viewModel: HomeScreenViewModel,
+    mediaItemList: List<MediaItem>,
     selectedIndex: (Int) -> Unit
 ) {
     val mAudio = remember(audio) { mutableStateOf(audio) }
@@ -152,6 +152,8 @@ fun AudioCards(
             AudioCardItem(
                 audio = audio,
                 viewModel = viewModel,
+                mediaItemList = mediaItemList,
+                selectedIndex = index,
                 selectedTrack = {
                     selectedIndex(index)
                 }
@@ -165,6 +167,8 @@ fun AudioCards(
 fun AudioCardItem(
     audio: Audio,
     viewModel: HomeScreenViewModel,
+    mediaItemList: List<MediaItem>,
+    selectedIndex: Int,
     selectedTrack: (Audio) -> Unit
 ) {
     var isAlbumArtExist by remember { mutableStateOf(PainterState.LOADING) }
@@ -175,7 +179,11 @@ fun AudioCardItem(
             .height(80.dp)
             .padding(horizontal = 20.dp, vertical = 5.dp)
             .clickable {
-                viewModel.setMediaItem(MediaItem.fromUri(audio.uri))
+                viewModel.setMediaItem(
+                    mediaItem = MediaItem.fromUri(audio.uri),
+                    mediaItemList = mediaItemList,
+                    selectedIndex = selectedIndex
+                    )
                 selectedTrack(audio)
             },
         shape = RoundedCornerShape(10.dp),

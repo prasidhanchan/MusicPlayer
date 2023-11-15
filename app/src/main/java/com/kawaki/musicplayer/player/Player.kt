@@ -1,6 +1,5 @@
 package com.kawaki.musicplayer.player
 
-import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -44,18 +43,26 @@ class Player @Inject constructor(
      * Function to set MediaItem
      * @param mediaItem Requires [MediaItem]
      */
-    fun setMediaItem(
+    suspend fun setMediaItem(
         mediaItem: MediaItem,
+        mediaItemList: List<MediaItem>,
+        selectedIndex: Int,
         playWhenReady: Boolean
     ) {
+        val mediaItemsFirst = mediaItemList.subList(0, selectedIndex)
+        val mediaItemsLast = mediaItemList.subList(selectedIndex + 1, mediaItemList.size)
+        exoPlayer.clearMediaItems()
         exoPlayer.setMediaItem(mediaItem)
+        delay(800)
+        exoPlayer.addMediaItems(0, mediaItemsFirst)
+        exoPlayer.addMediaItems(mediaItemsLast)
         exoPlayer.prepare()
         if (playWhenReady) exoPlayer.playWhenReady = true
     }
 
     /**
      * Function to set list of MediaItems
-     * @param uriList Requires a list of [Uri]
+     * @param mediaItemList Requires a list of [MediaItem]
      */
     fun setMediaItemList(mediaItemList: List<MediaItem>) {
         exoPlayer.setMediaItems(mediaItemList)

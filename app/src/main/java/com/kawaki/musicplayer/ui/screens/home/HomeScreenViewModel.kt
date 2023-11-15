@@ -1,6 +1,5 @@
 package com.kawaki.musicplayer.ui.screens.home
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -42,7 +41,21 @@ class HomeScreenViewModel @Inject constructor(
             _audioList.value = audioRepository.getAudioList()
         }
     }
-    fun setMediaItem(mediaItem: MediaItem, playWhenReady: Boolean = true) = player.setMediaItem(mediaItem, playWhenReady)
+    fun setMediaItem(
+        mediaItem: MediaItem,
+        mediaItemList: List<MediaItem>,
+        selectedIndex: Int = 0,
+        playWhenReady: Boolean = true
+    )  {
+        viewModelScope.launch {
+            player.setMediaItem(
+                mediaItem,
+                mediaItemList,
+                selectedIndex,
+                playWhenReady
+            )
+        }
+    }
     fun setMediaItemList(mediaItemList: List<MediaItem>) = player.setMediaItemList(mediaItemList)
 
     fun playOrPause() = player.playOrPause()
