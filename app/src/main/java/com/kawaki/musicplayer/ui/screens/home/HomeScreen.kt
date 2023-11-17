@@ -79,18 +79,21 @@ fun HomeScreen(
         }
     }
 
-    /** On every first Launch */
     if (audioListState.value.isNotEmpty() && mediaItemList.isNotEmpty()) {
+        /** On tap index */
         val selectedTrack = remember(viewModel.mExoPlayer) { mutableStateOf(audioListState.value.first()) }
 
+        /** On every first Launch
+         * To add music to the playlist at first launch
+         */
         LaunchedEffect(key1 = true) {
             if (audioListState.value.isNotEmpty()) {
                 viewModel.setMediaItemList(mediaItemList)
             }
         }
         LaunchedEffect(key1 = currentPosition.longValue) {
-            selectedTrack.value =
-                audioListState.value[if (viewModel.mExoPlayer.currentMediaItemIndex != 0) viewModel.mExoPlayer.currentMediaItemIndex else selectedIndex.intValue]
+            val dynamicIndex = if (viewModel.mExoPlayer.currentMediaItemIndex != 0) viewModel.mExoPlayer.currentMediaItemIndex else selectedIndex.intValue
+            selectedTrack.value = audioListState.value[dynamicIndex]
         }
 
         BottomSheetScaffold(
@@ -99,17 +102,14 @@ fun HomeScreen(
             sheetContent = {
                 PlayerContent(
                     audio = selectedTrack.value,
-                    shuffle = { viewModel.shuffle(true) },
                     previous = { viewModel.seekToPrevious() },
                     next = { viewModel.seekToNext() },
                     playPause = { viewModel.playOrPause() },
-                    favourite = { },
                     duration = currentPosition.longValue,
                     onSeekChange = { viewModel.seekTo(it.toLong()) },
                     onIndexChange = { selectedIndex.intValue = it },
                     totalDuration = selectedTrack.value.duration.toLong(),
                     isPlaying = playerState.value == PlayerState.IsPLAYING,
-                    isFavourite = false,
                     sheetScaffoldState = sheetState,
                     viewModel = viewModel
                 )

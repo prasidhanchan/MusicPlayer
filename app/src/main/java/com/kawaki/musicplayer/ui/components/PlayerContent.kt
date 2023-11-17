@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,17 +65,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlayerContent(
     audio: Audio,
-    shuffle: () -> Unit,
     previous: () -> Unit,
     next: () -> Unit,
     playPause: () -> Unit,
-    favourite: () -> Unit,
     duration: Long,
     onSeekChange: (Float) -> Unit,
     onIndexChange: (Int) -> Unit,
     totalDuration: Long,
     isPlaying: Boolean,
-    isFavourite: Boolean,
     sheetScaffoldState: BottomSheetScaffoldState,
     viewModel: HomeScreenViewModel
 ) {
@@ -97,7 +96,6 @@ fun PlayerContent(
                 onChange = onSeekChange
             )
             PlayerBottomControls(
-                shuffle = shuffle,
                 previous = {
                     previous()
                     onIndexChange(viewModel.mExoPlayer.currentMediaItemIndex)
@@ -107,11 +105,9 @@ fun PlayerContent(
                     onIndexChange(viewModel.mExoPlayer.currentMediaItemIndex)
                 },
                 playPause = playPause,
-                favourite = favourite,
                 duration = duration,
                 totalDuration = totalDuration,
                 isPlaying = isPlaying,
-                isFavourite = isFavourite,
                 viewModel = viewModel
             )
         }
@@ -139,28 +135,41 @@ fun PlayerTopContent(
 ) {
 
     val mAudio = remember(audio) { mutableStateOf(audio) }
-    val painterState = remember { mutableStateOf(PainterState.LOADING) }
+    val painterState = remember(audio) { mutableStateOf(PainterState.LOADING) }
 
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
-        if (painterState.value == PainterState.LOADING) CircularProgressIndicator()
-        AsyncImage(
-            model = mAudio.value.albumArt,
-            contentDescription = "Album Art",
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f),
-            contentScale = ContentScale.FillBounds,
-            onError = { painterState.value = PainterState.ERROR },
-            onLoading = { painterState.value = PainterState.LOADING }
-        )
         AppBar(
             modifier = Modifier.padding(top = 20.dp),
             sheetState = sheetScaffoldState
         )
+        when (painterState.value) {
+            PainterState.LOADING, PainterState.SUCCESS -> {
+                AsyncImage(
+                    model = mAudio.value.albumArt,
+                    contentDescription = "Album Art",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.5f),
+                    contentScale = ContentScale.FillBounds,
+                    onError = { painterState.value = PainterState.ERROR },
+                    onLoading = { painterState.value = PainterState.LOADING }
+                )
+            }
+
+            PainterState.ERROR -> {
+                Icon(
+                    painter = painterResource(id = R.drawable.music),
+                    contentDescription = "Music",
+                    modifier = Modifier
+                        .scale(0.50f)
+                        .padding(top = 22.dp, bottom = 22.dp)
+                )
+            }
+        }
     }
 
     Box(
@@ -275,15 +284,12 @@ fun PlayerCenterControls(
 @UnstableApi
 @Composable
 fun PlayerBottomControls(
-    shuffle: () -> Unit,
     previous: () -> Unit,
     next: () -> Unit,
     playPause: () -> Unit,
-    favourite: () -> Unit,
     duration: Long,
     totalDuration: Long,
     isPlaying: Boolean,
-    isFavourite: Boolean,
     viewModel: HomeScreenViewModel
 ) {
     Row(
@@ -291,20 +297,15 @@ fun PlayerBottomControls(
             .fillMaxWidth()
             .height(150.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.Center
     ) {
-        IconButton(onClick = shuffle) {
-            Icon(
-                painter = painterResource(id = R.drawable.shuffle),
-                contentDescription = "Shuffle"
-            )
-        }
         IconButton(onClick = previous) {
             Icon(
                 painter = painterResource(id = R.drawable.play_previous),
                 contentDescription = "Previous"
             )
         }
+        Spacer(modifier = Modifier.width(20.dp))
         Surface(
             modifier = Modifier
                 .size(70.dp)
@@ -329,16 +330,11 @@ fun PlayerBottomControls(
                 )
             }
         }
+        Spacer(modifier = Modifier.width(20.dp))
         IconButton(onClick = next) {
             Icon(
                 painter = painterResource(id = R.drawable.play_next),
                 contentDescription = "Next"
-            )
-        }
-        IconButton(onClick = favourite) {
-            Icon(
-                painter = painterResource(id = if (isFavourite) R.drawable.heart_filled else R.drawable.heart_outlined),
-                contentDescription = "Favourite"
             )
         }
     }
@@ -355,7 +351,7 @@ fun PlayerBottomBar(
 ) {
     val scope = rememberCoroutineScope()
     val mAudio = remember(audio) { mutableStateOf(audio) }
-    val painterState = remember(isPlaying) { mutableStateOf(PainterState.LOADING) }
+    val painterState = remember(audio) { mutableStateOf(PainterState.LOADING) }
 
     Surface(
         modifier = Modifier
@@ -371,42 +367,35 @@ fun PlayerBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            if (painterState.value == PainterState.ERROR) {
-                Surface(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.music),
-                        contentDescription = "Album Art",
-                        modifier = Modifier.scale(0.5f)
-                    )
-                }
-            } else {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(10.dp)),
-                    model = mAudio.value.albumArt,
-                    contentDescription = audio.title,
-                    contentScale = ContentScale.FillBounds,
-                    onState = { mPainterState ->
-                        when (mPainterState) {
-                            is AsyncImagePainter.State.Loading -> painterState.value =
-                                PainterState.LOADING
-
-                            is AsyncImagePainter.State.Error -> painterState.value =
-                                PainterState.ERROR
-
-                            is AsyncImagePainter.State.Success -> painterState.value =
-                                PainterState.SUCCESS
-
-                            else -> painterState.value = PainterState.ERROR
-                        }
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                when (painterState.value) {
+                    PainterState.SUCCESS, PainterState.LOADING -> {
+                        AsyncImage(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            model = mAudio.value.albumArt,
+                            contentDescription = audio.title,
+                            contentScale = ContentScale.FillBounds,
+                            onError = { painterState.value = PainterState.ERROR },
+                            onLoading = { painterState.value = PainterState.LOADING }
+                        )
                     }
-                )
+
+                    PainterState.ERROR -> {
+                        Icon(
+                            painter = painterResource(id = R.drawable.music),
+                            contentDescription = "Album Art",
+                            modifier = Modifier
+                                .scale(0.6f)
+                                .height(44.dp)
+                                .width(50.dp)
+                        )
+                    }
+                }
             }
             Column(
                 modifier = Modifier
@@ -485,17 +474,14 @@ fun PlayerPreview() {
 
     PlayerContent(
         audio = audio,
-        shuffle = { /*TODO*/ },
-        previous = { /*TODO*/ },
-        next = { /*TODO*/ },
-        playPause = { /*TODO*/ },
-        favourite = { /*TODO*/ },
+        previous = { },
+        next = { },
+        playPause = { },
         duration = 90L,
         onSeekChange = { },
         onIndexChange = { },
         totalDuration = 100L,
         isPlaying = false,
-        isFavourite = false,
         sheetScaffoldState = rememberBottomSheetScaffoldState(),
         viewModel = hiltViewModel()
     )

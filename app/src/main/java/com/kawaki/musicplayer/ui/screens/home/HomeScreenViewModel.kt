@@ -62,8 +62,6 @@ class HomeScreenViewModel @Inject constructor(
     fun seekToNext() = player.next()
     fun seekToPrevious() = player.previous()
     fun seekTo(newPosition: Long) = player.seekTo(newPosition)
-    fun shuffle(isShuffleOn: Boolean) = player.shuffle(isShuffleOn)
-
     fun currentTime(currentPosition: (Long) -> Unit) {
         viewModelScope.launch {
             player.currentPosition { position -> currentPosition(position) }

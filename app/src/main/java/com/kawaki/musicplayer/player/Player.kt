@@ -4,7 +4,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ShuffleOrder
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,7 +56,7 @@ class Player @Inject constructor(
         exoPlayer.addMediaItems(0, mediaItemsFirst)
         exoPlayer.addMediaItems(mediaItemsLast)
         exoPlayer.prepare()
-        if (playWhenReady) exoPlayer.playWhenReady = true
+        if (playWhenReady) exoPlayer.play()
     }
 
     /**
@@ -73,21 +72,19 @@ class Player @Inject constructor(
     fun playOrPause() = if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
 
     /** Function to play next track */
-    fun next() = exoPlayer.seekToNextMediaItem()
+    fun next() {
+        exoPlayer.seekToNextMediaItem()
+        exoPlayer.play()
+    }
 
     /** Function to play previous track */
-    fun previous() = exoPlayer.seekToPreviousMediaItem()
+    fun previous() {
+        exoPlayer.seekToPreviousMediaItem()
+        exoPlayer.play()
+    }
 
     /** Function to change audio position */
     fun seekTo(newPosition: Long) = exoPlayer.seekTo(newPosition)
-
-    /**
-     * Function to shuffle audio
-     * @param isShuffleOn Shuffles the audio list if set to true
-     */
-    fun shuffle(isShuffleOn: Boolean) {
-        if (isShuffleOn) exoPlayer.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(exoPlayer.mediaItemCount, 0L))
-    }
 
     /** Function to get current live position
      * @return Returns the current position of the audio

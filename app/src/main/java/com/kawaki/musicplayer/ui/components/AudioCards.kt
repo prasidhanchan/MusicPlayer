@@ -81,38 +81,30 @@ fun AudioCards(
                         .height(400.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    if (painterState.value == PainterState.ERROR) {
-                        Icon(
-                            modifier = Modifier
-                                .scale(0.60f)
-                                .height(400.dp)
-                                .padding(top = 80.dp),
-                            painter = painterResource(id = R.drawable.music),
-                            contentDescription = "Album Art"
-                        )
-                    } else {
-                        AsyncImage(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(400.dp),
-                            model = mAudio.value.albumArt,
-                            contentDescription = "Album Art",
-                            contentScale = ContentScale.FillBounds,
-                            onState = { mPainterState ->
-                                when (mPainterState) {
-                                    is AsyncImagePainter.State.Loading -> painterState.value =
-                                        PainterState.LOADING
+                    when (painterState.value) {
+                        PainterState.LOADING, PainterState.SUCCESS -> {
+                            AsyncImage(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(400.dp),
+                                model = mAudio.value.albumArt,
+                                contentDescription = "Album Art",
+                                contentScale = ContentScale.FillBounds,
+                                onError = { painterState.value = PainterState.ERROR },
+                                onLoading = { painterState.value = PainterState.LOADING }
+                            )
+                        }
 
-                                    is AsyncImagePainter.State.Error -> painterState.value =
-                                        PainterState.ERROR
-
-                                    is AsyncImagePainter.State.Success -> painterState.value =
-                                        PainterState.SUCCESS
-
-                                    else -> painterState.value = PainterState.ERROR
-                                }
-                            }
-                        )
+                        PainterState.ERROR -> {
+                            Icon(
+                                modifier = Modifier
+                                    .scale(0.60f)
+                                    .height(400.dp)
+                                    .padding(top = 80.dp),
+                                painter = painterResource(id = R.drawable.music),
+                                contentDescription = "Album Art"
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
@@ -183,7 +175,7 @@ fun AudioCardItem(
                     mediaItem = MediaItem.fromUri(audio.uri),
                     mediaItemList = mediaItemList,
                     selectedIndex = selectedIndex
-                    )
+                )
                 selectedTrack(audio)
             },
         shape = RoundedCornerShape(10.dp),
