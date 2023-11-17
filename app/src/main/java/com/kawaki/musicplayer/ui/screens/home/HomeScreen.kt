@@ -3,6 +3,7 @@ package com.kawaki.musicplayer.ui.screens.home
 import android.Manifest
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,8 +46,11 @@ fun HomeScreen(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (!isGranted) {
-                Toast.makeText(context, "Enable storage permission in settings", Toast.LENGTH_LONG)
-                    .show()
+                Toast.makeText(
+                    context,
+                    "Enable storage permission in settings",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     )
@@ -63,6 +67,12 @@ fun HomeScreen(
                 permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
         }
+    }
+
+    LaunchedEffect(key1 = checkStoragePermission(context)) {
+        Log.d("LAODINGG", "HomeScreen: Executed")
+        viewModel.getAudioList()
+
     }
 
     val sheetState = rememberBottomSheetScaffoldState()
@@ -116,7 +126,7 @@ fun HomeScreen(
             },
             scaffoldState = sheetState,
             sheetPeekHeight = 100.dp,
-            sheetDragHandle = { }
+            sheetDragHandle = {  }
         ) { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding),

@@ -36,7 +36,7 @@ class HomeScreenViewModel @Inject constructor(
         exoPlayer.addListener(player)
     }
 
-    private fun getAudioList() {
+    fun getAudioList() {
         viewModelScope.launch(Dispatchers.IO) {
             _audioList.value = audioRepository.getAudioList()
         }

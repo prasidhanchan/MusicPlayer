@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -34,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -163,7 +165,8 @@ fun AudioCardItem(
     selectedIndex: Int,
     selectedTrack: (Audio) -> Unit
 ) {
-    var isAlbumArtExist by remember { mutableStateOf(PainterState.LOADING) }
+    var painterState by remember { mutableStateOf(PainterState.LOADING) }
+    val dynamicTint = if (isSystemInDarkTheme()) Color.Black else Color.White
 
     Surface(
         modifier = Modifier
@@ -188,38 +191,40 @@ fun AudioCardItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            if (isAlbumArtExist == PainterState.ERROR) {
-                Surface(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.16f),
-                    color = MaterialTheme.colorScheme.onSurface
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.music),
-                        contentDescription = "Music",
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-            } else {
-                AsyncImage(
-                    model = audio.albumArt,
-                    contentDescription = audio.displayName,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .fillMaxWidth(0.16f)
-                        .fillMaxHeight(),
-                    contentScale = ContentScale.FillBounds,
-                    onState = { painterState ->
-                        isAlbumArtExist = when (painterState) {
-                            is AsyncImagePainter.State.Loading -> PainterState.LOADING
-                            is AsyncImagePainter.State.Error -> PainterState.ERROR
-                            is AsyncImagePainter.State.Success -> PainterState.SUCCESS
-                            else -> PainterState.ERROR
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                when(painterState) {
+                    PainterState.LOADING, PainterState.SUCCESS -> {
+                        AsyncImage(
+                            model = audio.albumArt,
+                            contentDescription = audio.displayName,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .fillMaxWidth(0.16f)
+                                .fillMaxHeight(),
+                            contentScale = ContentScale.FillBounds,
+                            onError = { painterState = PainterState.ERROR },
+                            onLoading = { painterState = PainterState.LOADING}
+                        )
+                    }
+                    PainterState.ERROR -> {
+                        Surface(
+                            modifier = Modifier
+                                .size(50.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.onBackground
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.music),
+                                contentDescription = "Music",
+                                modifier = Modifier.padding(8.dp),
+                                tint = dynamicTint
+                            )
                         }
                     }
-                )
+                }
             }
 
             Column(
