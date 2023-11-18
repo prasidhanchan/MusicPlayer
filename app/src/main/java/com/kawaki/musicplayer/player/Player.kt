@@ -91,9 +91,11 @@ class Player @Inject constructor(
      * */
     suspend fun currentPosition(position: (Long) -> Unit)  {
         job.run {
-            while (true) {
-                position(exoPlayer.currentPosition)
-                delay(1000)
+            if (exoPlayer.isPlaying) {
+                while (true) {
+                    position(exoPlayer.currentPosition)
+                    delay(1000)
+                }
             }
         }
     }

@@ -17,15 +17,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.kawaki.musicplayer.R
 import com.kawaki.musicplayer.navigation.NavScreens
+import com.kawaki.musicplayer.ui.components.checkStoragePermission
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context = LocalContext.current
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface
@@ -34,9 +37,14 @@ fun SplashScreen(navController: NavController) {
         val scale = remember { Animatable(0f) }
 
         LaunchedEffect(key1 = true) {
-            scale.animateTo(targetValue = 0.8f, animationSpec = tween(1000))
+            scale.animateTo(targetValue = 1f, animationSpec = tween(500))
+            scale.animateTo(targetValue = 0.8f, animationSpec = tween(500))
             delay(1000)
-            navController.navigate(NavScreens.HOMESCREEN.name)
+            if (checkStoragePermission(context)) {
+                navController.navigate(NavScreens.HOMESCREEN.name)
+            } else {
+                navController.navigate(NavScreens.REQUESTPERMISSIONSCREEN.name)
+            }
         }
 
         Column(

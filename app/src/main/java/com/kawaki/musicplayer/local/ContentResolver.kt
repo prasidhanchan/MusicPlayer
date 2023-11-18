@@ -6,6 +6,8 @@ import android.database.Cursor
 import android.provider.MediaStore
 import com.kawaki.musicplayer.model.Audio
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 /**
@@ -15,7 +17,7 @@ import javax.inject.Inject
 class ContentResolver @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val audioList = mutableListOf<Audio>()
+    private val audioList = MutableStateFlow(mutableListOf<Audio>())
     private var cursor: Cursor? = null
 
     private val projection = arrayOf(
@@ -36,13 +38,13 @@ class ContentResolver @Inject constructor(
      * This function is used to get list of Audios present on the device locally
      * @return Returns  a mutable list of [Audio]
      */
-    fun getAudioList(): MutableList<Audio> = getCursorData()
+    fun getAudioList(): Flow<List<Audio>> = getCursorData()
 
     /**
      * This function gets the artist name, title, uri, displayName, etc from local storage and adds the [Audio] data to the audioList
      * @return Returns  a mutable list of [Audio]
      */
-    private fun getCursorData(): MutableList<Audio> {
+    private fun getCursorData(): Flow<List<Audio>> {
         cursor = context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             projection,
@@ -61,7 +63,7 @@ class ContentResolver @Inject constructor(
 
             mCursor.apply {
 
-                while (cursor?.moveToNext() == true) {
+                while (mCursor.moveToNext()) {
                     val displayName = getString(displayNameColumn)
                     val id = getLong(idColumn)
                     val idAlbum = getLong(idAlbumColumn)
@@ -77,7 +79,7 @@ class ContentResolver @Inject constructor(
                         idAlbum
                     )
 
-                    audioList.add(
+                    audioList.value.add(
                         Audio(
                             displayName = displayName,
                             id = id,

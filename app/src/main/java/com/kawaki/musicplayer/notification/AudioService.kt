@@ -37,12 +37,19 @@ class AudioService : MediaSessionService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
+    fun stopService() {
+        Intent(applicationContext, AudioService::class.java).also {
+            it.action = ACTIONS.STOP.toString()
+            stopService(it)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         mediaSession.apply {
             release()
             player.stop()
-            stopForeground(STOP_FOREGROUND_REMOVE)
         }
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 }
