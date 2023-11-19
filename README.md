@@ -1,6 +1,6 @@
 # MusicPlayer
 
-# Music is a simple Music Player App powered by Google's ExoPlayer with a Clean UI made in Jetpack Compose following a clean MVVM architecture.
+Music is a simple Music Player App powered by Google's ExoPlayer with a Clean UI made in Jetpack Compose following a clean MVVM architecture.
 <p align="center">
   <img src="https://github.com/prasidhgopalanchan/MusicPlayer/assets/92362239/f49877a8-2c7d-4bc0-a892-fe4c55c52c7f" alt="Permission" width="280px" height="600px">
 <br><br>
@@ -14,3 +14,11 @@
 </p>
 
 # Tech Stack
+* Kotlin
+* Compose
+* MVVM
+* Clean Architecture
+* Dependency Injection - Hilt
+* Player - ExoPlayer with Media3
+* Design - MD3
+* Image Parsing - Coil and Glide
