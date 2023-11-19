@@ -2,7 +2,7 @@
 
 <p align="center">
     <a href="https://developer.android.com/tools/releases/platforms">
-    <img src="https://img.shields.io/badge/API-26%2B-brightgreen" alt="API">
+    <img src="https://img.shields.io/badge/API-29%2B-brightgreen" alt="API">
   </a>
     <a href="https://www.instagram.com/pra_sidh_22/">
     <img src="https://img.shields.io/badge/instagram-pra__sidh__22-blue" alt="Instagram">
