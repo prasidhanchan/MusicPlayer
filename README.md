@@ -1,5 +1,14 @@
 # MusicPlayer
 
+<p align="center">
+    <a href="https://developer.android.com/tools/releases/platforms">
+    <img src="https://img.shields.io/badge/API-26%2B-brightgreen" alt="API">
+  </a>
+    <a href="https://www.instagram.com/pra_sidh_22/">
+    <img src="https://img.shields.io/badge/instagram-pra__sidh__22-blue" alt="Instagram">
+  </a>
+</p>
+
 Music is a simple Music Player App powered by Google's ExoPlayer with a Clean UI made in Jetpack Compose following a clean MVVM architecture.
 <p align="center">
   <img src="https://github.com/prasidhgopalanchan/MusicPlayer/assets/92362239/f49877a8-2c7d-4bc0-a892-fe4c55c52c7f" alt="Permission" width="280px" height="600px">
