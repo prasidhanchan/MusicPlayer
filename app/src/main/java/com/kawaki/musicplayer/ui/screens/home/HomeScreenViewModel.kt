@@ -83,7 +83,6 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun setMediaItemList(mediaItemList: List<MediaItem>) = player.setMediaItemList(mediaItemList)
-
     fun playOrPause() = player.playOrPause()
     fun seekToNext() = player.next()
     fun seekToPrevious() = player.previous()
@@ -100,6 +99,7 @@ class HomeScreenViewModel @Inject constructor(
         super.onCleared()
         exoPlayer.release()
         exoPlayer.removeListener(player)
+        //TODO: Find an alternative for stopService()
         audioService.stopService()
     }
 }

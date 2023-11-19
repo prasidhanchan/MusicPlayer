@@ -28,9 +28,8 @@ import com.kawaki.musicplayer.ui.components.PlayerContent
 @ExperimentalMaterial3Api
 @UnstableApi
 @Composable
-fun HomeScreen(
-    viewModel: HomeScreenViewModel = hiltViewModel()
-) {
+fun HomeScreen(viewModel: HomeScreenViewModel = hiltViewModel()) {
+
     val audioListState = viewModel.audioList.collectAsState()
 
     val playerState = viewModel.playerState.collectAsState()
@@ -39,8 +38,10 @@ fun HomeScreen(
 
     val sheetState = rememberBottomSheetScaffoldState()
     val currentPosition = viewModel.currentPosition.collectAsState()
+
     /** Current MediaItem Index from ExoPlayer */
     val currentMediaItemIndex = viewModel.mExoPlayer.currentMediaItemIndex
+
     /** ExoPlayer */
     val exoPlayer = viewModel.mExoPlayer
 
@@ -66,7 +67,8 @@ fun HomeScreen(
             }
         }
         LaunchedEffect(key1 = currentPosition.value) {
-            val dynamicIndex = if (currentMediaItemIndex != 0) currentMediaItemIndex else selectedIndex.intValue
+            val dynamicIndex =
+                if (currentMediaItemIndex != 0) currentMediaItemIndex else selectedIndex.intValue
             selectedTrack.value = audioListState.value[dynamicIndex]
         }
 
@@ -90,7 +92,7 @@ fun HomeScreen(
             },
             scaffoldState = sheetState,
             sheetPeekHeight = 100.dp,
-            sheetDragHandle = {  }
+            sheetDragHandle = { }
         ) { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding),

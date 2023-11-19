@@ -13,7 +13,7 @@ import javax.inject.Inject
 @UnstableApi
 class Player @Inject constructor(
     private val exoPlayer: ExoPlayer
-): Player.Listener {
+) : Player.Listener {
 
     private val _playerState = MutableStateFlow(PlayerState.IDLE)
     val playerState = _playerState.asStateFlow()
@@ -22,7 +22,7 @@ class Player @Inject constructor(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
-        when(playbackState) {
+        when (playbackState) {
             ExoPlayer.STATE_BUFFERING -> _playerState.value = PlayerState.BUFFERING
             ExoPlayer.STATE_IDLE -> _playerState.value = PlayerState.IDLE
             ExoPlayer.STATE_READY -> _playerState.value = PlayerState.READY
@@ -32,7 +32,7 @@ class Player @Inject constructor(
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         super.onIsPlayingChanged(isPlaying)
-        when(isPlaying) {
+        when (isPlaying) {
             true -> _playerState.value = PlayerState.IsPLAYING
             else -> _playerState.value = PlayerState.PAUSED
         }
@@ -89,13 +89,11 @@ class Player @Inject constructor(
     /** Function to get current live position
      * @return Returns the current position of the audio
      * */
-    suspend fun currentPosition(position: (Long) -> Unit)  {
+    suspend fun currentPosition(position: (Long) -> Unit) {
         job.run {
-            if (exoPlayer.isPlaying) {
-                while (true) {
-                    position(exoPlayer.currentPosition)
-                    delay(1000)
-                }
+            while (true) {
+                position(exoPlayer.currentPosition)
+                delay(1000)
             }
         }
     }
